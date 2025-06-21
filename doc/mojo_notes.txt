@@ -94,7 +94,16 @@ You return a value of one type from a function that specifies a different return
 ---
 
 
-https://docs.modular.com/mojo/manual/values/value-semantics#intro-to-value-semantics ,
+// assignment:
+//   value semantics, copy
+//
+// function argument pass:
+//   value semantics, copy, through immutable reference.
+//   it needs a explicit manual local copy by assignment for local modification inside function.
+
+https://docs.modular.com/mojo/manual/values/value-semantics ,
+
+Mojo is designed with argument behaviors that default to value semantics,
 
 In the most basic situation, sharing a value-semantic type means that you create a copy of the value.
 This is also known as "pass by value."
@@ -104,8 +113,7 @@ When we increment y, the value of x doesn't change. Each variable has exclusive 
 
 Numeric values in Mojo are value semantic because they're trivial types, which are cheap to copy.
 
-
-https://docs.modular.com/mojo/manual/values/value-semantics#value-semantics-in-mojo-functions ,
+Value semantics also apply to function arguments in Mojo by default.
 
 in the following function, the y argument is immutable by default,
 so if the function wants to modify the value in the local scope, it needs to make a local copy.
@@ -118,12 +126,13 @@ and any living variable from the callee is not affected by the function.
 
 
 // __init__:
-//      create a new instance not from another existing instance;
+//      create a new instance, not initialized from another existing instance;
 //
-// __copyinit__, __moveinit__:
-//      create a new instance from another existing instance;
-//      assignment;
-//      function argument passing;
+// __moveinit__:
+//      create a new instance, initialized from another existing instance;
+//
+// __copyinit__,
+//      assignment, between existing instances;
 
 // mojo use init for both creating an instance with initialization, and assignment.
 // it does not need separate assignment operator methods like c++.
@@ -146,45 +155,6 @@ and when the lifetime of the given value does not end at that point.
 
 If the lifetime of the value does end there (usually indicated with the transfer sigil ^),
 then Mojo instead invokes the move constructor.
-
-
----
-
-
-https://docs.modular.com/mojo/manual/lifecycle/life#move-constructor ,
-the only catch is that you must use the ^ transfer sigil to end the lifetime of a move-only type
-when assigning it to a new variable or when passing it as an owned argument.
-
-
----
-
-
-https://docs.modular.com/mojo/manual/lifecycle/life#value-decorator ,
-even if it's not used with self.name = name^, the Mojo compiler will notice
-that name is last used here and convert this assignment into a move, instead of a copy+delete.
-
-
----
-
-
-
-// file handle, network and database connection, are non-memory (eg. variables) resources.
-// it is like using a custom deleter with c++ smart pointer.
-https://docs.modular.com/mojo/manual/errors#use-a-context-manager ,
-A context manager is an object that manages resources such as files, network connections,
-and database connections.
-
-
----
-
-
-https://docs.modular.com/mojo/manual/packages#mojo-modules ,
-import MyPair into a file named main.mojo that's in the same directory as mymodule.mojo:
-  from mymodule import MyPair
-
-it only works when mymodule.mojo is in the same directory as main.mojo.
-Currently, you can't import .mojo files as modules if they reside in other directories.
-That is, unless you treat the directory as a Mojo package, as described in the next section.
 
 
 ---
@@ -217,7 +187,7 @@ fn f2(owned t: T):
     print("f2")
 
 
-fn main() raises:
+fn main():
     a = T("a")  # init, create new instance
     b = a  # copy
     c = a^  # move
@@ -240,27 +210,55 @@ fn main() raises:
     f1(c)
 
 
-'''
+---
 
-# OUTPUT
 
-init a
-copyinit a
-moveinit a
-copyinit a
-f1
-f1
-copyinit a
-del a
-f2
-del a
-f2
-f1
-del a
-f1
-del a
+fn main():
+    a = T("a")
+    b = T("b")
+    # a = b  # assignment between existing instance, copyinit;
+    c1 = a^  # create new instance, initialized by another instance, moveinit;
+    c2 = b   # just a ref;
+    f1(b)
+    f1(c)
 
-'''
+
+---
+
+
+https://docs.modular.com/mojo/manual/lifecycle/life#move-constructor ,
+the only catch is that you must use the ^ transfer sigil to end the lifetime of a move-only type
+when assigning it to a new variable or when passing it as an owned argument.
+
+
+---
+
+
+https://docs.modular.com/mojo/manual/lifecycle/life#value-decorator ,
+even if it's not used with self.name = name^, the Mojo compiler will notice
+that name is last used here and convert this assignment into a move, instead of a copy+delete.
+
+
+---
+
+
+// file handle, network and database connection, are non-memory (eg. variables) resources.
+// it is like using a custom deleter with c++ smart pointer.
+https://docs.modular.com/mojo/manual/errors#use-a-context-manager ,
+A context manager is an object that manages resources such as files, network connections,
+and database connections.
+
+
+---
+
+
+https://docs.modular.com/mojo/manual/packages#mojo-modules ,
+import MyPair into a file named main.mojo that's in the same directory as mymodule.mojo:
+  from mymodule import MyPair
+
+it only works when mymodule.mojo is in the same directory as main.mojo.
+Currently, you can't import .mojo files as modules if they reside in other directories.
+That is, unless you treat the directory as a Mojo package, as described in the next section.
 
 
 ---
@@ -270,7 +268,7 @@ del a
 https://docs.modular.com/mojo/stdlib/builtin/sort/sort ,
 
 // search,
-// https://docs.modular.com/mojo/stdlib/collections/list/List ,
+https://docs.modular.com/mojo/stdlib/collections/list/List ,
     var my_list = [1, 2, 3]
     print(my_list.index(2)) # prints `1`
 
@@ -283,19 +281,49 @@ https://docs.modular.com/mojo/stdlib/collections/string/string/String#find ,
 // substr, zero copy slicing,
 https://docs.modular.com/mojo/stdlib/collections/string/string_slice/ ,
 https://docs.modular.com/mojo/stdlib/collections/string/string_slice/StringSlice ,
+https://docs.modular.com/mojo/stdlib/builtin/range/range ,
 
+fn main() raises:
+    # slice with half-open range, [start: end)
     s1 = "Hello, 世界"
-    slice = s.as_string_slice()
-    print(s2[7:13]) # half-open range, [start: end)
+    s2 = "Hello, 世界".as_string_slice()
+    s3 = StringSlice("Hello, 世界")
+    s4 = String("Hello, 世界")
+    print(s2[7:13])
+    print(s3[7:13])
+    print(s4[7:13])
 
-    s1 = "hello world"
-    slice = StringSlice(s1)
-    format_str = StaticString("|{}|")
-    print(format_str.format(slice[7:13]))
-
-
-// https://docs.modular.com/mojo/stdlib/builtin/range/range ,
+    a = "abc"
+    b = 123
+    format_str = StaticString("|{}, {}|")
+    print(format_str.format(a, b))
 
 
 ---
 
+
+# turn unicode string into a list of string
+# so every element is a unicode character and can be correctly indexed
+
+def main():
+    s1 = "Hello, 世界"
+
+    print(len(s1)) # 13
+    print(s1[7])   # error
+    print(s1[8])   # error
+
+    s2 = List[String]()
+
+    # 1. with list comprehension
+    s2 = [String(c) for c in s1]
+
+    # 2. without list comprehension
+    # for c in s1:
+    #     s2.append(String(c))
+
+    print(len(s2)) # 9
+    print(s2[7])   # ok
+    print(s2[8])   # ok
+
+
+---
