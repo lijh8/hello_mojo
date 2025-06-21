@@ -62,7 +62,7 @@ launch.json:
 this is similar to golang extension:
     "console": "integratedTerminal",
 
-When install mojo extension in vscode, it will also install MAX SDK from Modular.
+When install mojo extension in vscode, it will also install or config MAX SDK from Modular.
 It seems taht this is not required for build and run mojo at command terminal.
 
 
@@ -238,6 +238,40 @@ f1
 del a
 
 '''
+
+
+---
+
+
+// sort
+https://docs.modular.com/mojo/stdlib/builtin/sort/sort ,
+
+// search,
+// https://docs.modular.com/mojo/stdlib/collections/list/List ,
+    var my_list = [1, 2, 3]
+    print(my_list.index(2)) # prints `1`
+
+// find,
+https://docs.modular.com/mojo/stdlib/collections/dict/Dict#find ,
+
+// find string,
+https://docs.modular.com/mojo/stdlib/collections/string/string/String#find ,
+
+// substr, zero copy slicing,
+https://docs.modular.com/mojo/stdlib/collections/string/string_slice/ ,
+https://docs.modular.com/mojo/stdlib/collections/string/string_slice/StringSlice ,
+
+    s1 = "Hello, 世界"
+    slice = s.as_string_slice()
+    print(s2[7:13]) # half-open range, [start: end)
+
+    s1 = "hello world"
+    slice = StringSlice(s1)
+    format_str = StaticString("|{}|")
+    print(format_str.format(slice[7:13]))
+
+
+// https://docs.modular.com/mojo/stdlib/builtin/range/range ,
 
 
 ---
