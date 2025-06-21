@@ -189,9 +189,9 @@ fn f2(owned t: T):
 
 fn main():
     a = T("a")  # init, create new instance
-    b = a  # copy
-    c = a^  # move
-    a = c  # copy, assignment
+    b = a       # copy
+    c = a^      # move
+    a = c       # copy, assignment
 
     # ref
     f1(a)
@@ -215,13 +215,20 @@ fn main():
 
 fn main():
     a = T("a")
-    b = T("b")
-    # a = b  # assignment between existing instance, copyinit;
-    c1 = a^  # create new instance, initialized by another instance, moveinit;
-    c2 = b   # just a ref;
-    f1(b)
-    f1(c)
+    b = a  # create new instance, initialized with another instance, copyinit
+    b.name = "bbb"
+    print(a.name, b.name)  # a, bbb
 
+
+---
+
+
+fn main():
+    a = T("a")
+    b = T("b")
+    b = a  # assignment, copyinit;
+    b.name = "bbb"
+    print(a.name, b.name)  # a, bbb
 
 ---
 
