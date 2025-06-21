@@ -6,7 +6,7 @@ mojo lang
 
 Install
 
-install pixi first
+Install pixi first
 $ curl -fsSL https://pixi.sh/install.sh | sh
 The 'pixi' binary is installed into '/Users/ljh/.pixi/bin'
 Updating '/Users/ljh/.zshrc'
@@ -33,6 +33,8 @@ $ pixi run mojo --version
 Start the virtual environment:
 $ pixi shell
 
+$ vi hello.mojo
+
 $ mojo hello.mojo
 
 $ mojo build hello.mojo
@@ -51,19 +53,18 @@ $ pixi remove modular
 ---
 
 
-vscode
+VSCode
 
-extension: mojo by Modular,
+Extension: mojo by Modular,
 
-when accept input, use internal terminal instead of debug console.
+When mojo program needs stdin input, use internal terminal instead of debug console:
 launch.json:
     "runInTerminal": true,
 
-this is similar to golang extension:
+This is similar to golang extension:
     "console": "integratedTerminal",
 
 When install mojo extension in vscode, it will also install or config MAX SDK from Modular.
-It seems taht this is not required for build and run mojo at command terminal.
 
 
 ---
@@ -95,11 +96,13 @@ You return a value of one type from a function that specifies a different return
 
 
 // assignment:
-//   value semantics, copy
+//   value semantics, copy, modify the copy will not change the original value;
 //
 // function argument pass:
 //   value semantics, copy, through immutable reference.
-//   it needs a explicit manual local copy by assignment for local modification inside function.
+//   inside the function, the argument can not be changed.
+//   copy the argument explicitly by manual, then make changes on the new copy.
+//   the original argument from the calling side is not changed;
 
 https://docs.modular.com/mojo/manual/values/value-semantics ,
 
@@ -111,6 +114,10 @@ This is also known as "pass by value."
 We assigned the value of x to y, which creates the value for y by making a copy of x.
 When we increment y, the value of x doesn't change. Each variable has exclusive ownership of a value.
 
+    var x = 1
+    var y = x
+    y += 1
+
 Numeric values in Mojo are value semantic because they're trivial types, which are cheap to copy.
 
 Value semantics also apply to function arguments in Mojo by default.
@@ -118,7 +125,20 @@ Value semantics also apply to function arguments in Mojo by default.
 in the following function, the y argument is immutable by default,
 so if the function wants to modify the value in the local scope, it needs to make a local copy.
 
-the default behavior for function arguments is fully value semantic: arguments are immutable references,
+fn add_two(y: Int):
+    # y += 2  # This would cause a compiler error because `y` is immutable
+    # We can instead make an explicit copy:
+    var z = y
+    z += 2
+    print("z:", z)
+
+def main():
+    var x = 1
+    add_two(x)
+    print("x:", x)
+
+the default behavior for function arguments is fully value semantic:
+arguments are immutable references,
 and any living variable from the callee is not affected by the function.
 
 
@@ -134,42 +154,6 @@ The read convention is the default for all arguments.
 Mojo is more efficient when passing small values,
 and Rust defaults to moving values instead of passing them around by borrow.
 These policy and syntax decisions allow Mojo to provide an easier-to-use programming model.
-
-
----
-
-
-// __init__:
-//      create a new instance, not initialized from another existing instance;
-//
-// __moveinit__:
-//      initialization or assignment with move sigil ^ character;
-//
-// __copyinit__,
-//      create a new instance, initialized from another existing instance;
-//      assignment, between existing instances;
-
-// mojo use init for both creating an instance with initialization, and assignment.
-// it does not need separate assignment operator methods like c++.
-
-https://docs.modular.com/mojo/manual/structs ,
-
-So here it is with a constructor to initialize the two fields,
-The __init__() method is one of many special methods
-(also known as "dunder methods" because they have double underscores) with pre-determined names.
-
-Once you have a constructor, you can create an instance of MyPair and set the fields.
-
-
-https://docs.modular.com/mojo/manual/lifecycle/life#copy-constructor ,
-When Mojo encounters an assignment statement that doesn't use the transfer sigil (^),
-it tries to make a copy of the right-side value by calling upon that type's copy constructor,
-
-Mojo also calls upon the copy constructor when a value is passed to a function that takes the argument as owned
-and when the lifetime of the given value does not end at that point.
-
-If the lifetime of the value does end there (usually indicated with the transfer sigil ^),
-then Mojo instead invokes the move constructor.
 
 
 ---
@@ -195,11 +179,61 @@ struct T:
 
 
 fn f1(t: T):
-    print("f1")
+    print("f1", t.name)
 
 
 fn f2(owned t: T):
-    print("f2")
+    print("f2", t.name)
+
+
+fn main():
+    a = T("a")
+    b = T("b")
+    # b = a  # create new instance, initialized from another instance, copyinit;
+    # a = b  # assignment, copyinit;
+
+    # b = a^  # create new instance with move sigil ^ , moveinit;
+    b = a^  # assignment with move sigil ^ , moveinit;
+
+    # print(a.name)
+    print(b.name)
+
+
+// __init__:
+//      create a new instance, not initialized from another existing instance;
+//
+// __copyinit__,
+//      create a new instance, initialized from another existing instance;
+//      assignment, between existing instances;
+//
+// __moveinit__:
+//      initialization or assignment with move sigil ^ character;
+
+// mojo use copyinit for both creating an instance with initialization and assignment.
+// it does not need separate assignment operator methods like c++.
+
+
+---
+
+
+https://docs.modular.com/mojo/manual/structs ,
+
+So here it is with a constructor to initialize the two fields,
+The __init__() method is one of many special methods
+(also known as "dunder methods" because they have double underscores) with pre-determined names.
+
+Once you have a constructor, you can create an instance of MyPair and set the fields.
+
+
+https://docs.modular.com/mojo/manual/lifecycle/life#copy-constructor ,
+When Mojo encounters an assignment statement that doesn't use the transfer sigil (^),
+it tries to make a copy of the right-side value by calling upon that type's copy constructor,
+
+Mojo also calls upon the copy constructor when a value is passed to a function that takes the argument as owned
+and when the lifetime of the given value does not end at that point.
+
+If the lifetime of the value does end there (usually indicated with the transfer sigil ^),
+then Mojo instead invokes the move constructor.
 
 
 ---
@@ -299,7 +333,7 @@ That is, unless you treat the directory as a Mojo package, as described in the n
 ---
 
 
-// sort
+// sort,
 https://docs.modular.com/mojo/stdlib/builtin/sort/sort ,
 
 // search,
@@ -320,7 +354,7 @@ https://docs.modular.com/mojo/stdlib/builtin/range/range ,
 
 fn main() raises:
     # slice with half-open range, [start: end)
-    s1 = "Hello, 世界"
+    s1 = "Hello, 世界"  # string literal does not support slicing.
     s2 = "Hello, 世界".as_string_slice()
     s3 = StringSlice("Hello, 世界")
     s4 = String("Hello, 世界")
