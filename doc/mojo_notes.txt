@@ -129,9 +129,10 @@ and any living variable from the callee is not affected by the function.
 //      create a new instance, not initialized from another existing instance;
 //
 // __moveinit__:
-//      create a new instance, initialized from another existing instance;
+//      initialized or assignment with move sigil ^ character;
 //
 // __copyinit__,
+//      create a new instance, initialized from another existing instance;
 //      assignment, between existing instances;
 
 // mojo use init for both creating an instance with initialization, and assignment.
@@ -187,29 +188,6 @@ fn f2(owned t: T):
     print("f2")
 
 
-fn main():
-    a = T("a")  # init, create new instance
-    b = a       # copy
-    c = a^      # move
-    a = c       # copy, assignment
-
-    # ref
-    f1(a)
-    f1(a)
-
-    # copy
-    f2(a)
-    f2(a)
-
-    # move
-    # f2(a^)
-    # f2(a^)
-
-    #
-    f1(b)
-    f1(c)
-
-
 ---
 
 
@@ -229,6 +207,42 @@ fn main():
     b = a  # assignment, copyinit;
     b.name = "bbb"
     print(a.name, b.name)  # a, bbb
+
+
+---
+
+
+fn main():
+    a = T("a")
+    # b = T("b")
+    b = a^  # moveinit;
+    b.name = "bbb"
+    # print(a.name, b.name)  # a, bbb
+    print(b.name)  # a, bbb
+
+
+---
+
+
+fn main():
+    a = T("a")
+    # f1(a)
+    f1(a^)
+    print(a.name)  # f1 will not move, object a still available
+
+
+---
+
+
+fn main():
+    a = T("a")
+    b = T("b")
+    f2(a)  # copyinit
+    print(a.name)  # object a is still available here
+
+    f2(a^)  # move
+    print(a.name)  # moved, object a is unavailable anymore
+
 
 ---
 
