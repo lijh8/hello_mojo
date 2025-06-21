@@ -125,11 +125,25 @@ and any living variable from the callee is not affected by the function.
 ---
 
 
+https://docs.modular.com/mojo/manual/values/ownership ,
+
+In Mojo, we want to provide full value semantics by default,
+By default, all arguments are read,
+The read convention is the default for all arguments.
+
+Mojo is more efficient when passing small values,
+and Rust defaults to moving values instead of passing them around by borrow.
+These policy and syntax decisions allow Mojo to provide an easier-to-use programming model.
+
+
+---
+
+
 // __init__:
 //      create a new instance, not initialized from another existing instance;
 //
 // __moveinit__:
-//      initialized or assignment with move sigil ^ character;
+//      initialization or assignment with move sigil ^ character;
 //
 // __copyinit__,
 //      create a new instance, initialized from another existing instance;
