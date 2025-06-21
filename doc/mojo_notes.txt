@@ -94,6 +94,29 @@ You return a value of one type from a function that specifies a different return
 ---
 
 
+https://docs.modular.com/mojo/manual/values/value-semantics#intro-to-value-semantics ,
+
+In the most basic situation, sharing a value-semantic type means that you create a copy of the value.
+This is also known as "pass by value."
+
+We assigned the value of x to y, which creates the value for y by making a copy of x.
+When we increment y, the value of x doesn't change. Each variable has exclusive ownership of a value.
+
+Numeric values in Mojo are value semantic because they're trivial types, which are cheap to copy.
+
+
+https://docs.modular.com/mojo/manual/values/value-semantics#value-semantics-in-mojo-functions ,
+
+in the following function, the y argument is immutable by default,
+so if the function wants to modify the value in the local scope, it needs to make a local copy.
+
+the default behavior for function arguments is fully value semantic: arguments are immutable references,
+and any living variable from the callee is not affected by the function.
+
+
+---
+
+
 // __init__:
 //      create a new instance not from another existing instance;
 //
