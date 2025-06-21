@@ -7,13 +7,15 @@
         {
             "type": "mojo-lldb",
             "request": "launch",
-            "name": "Mojo: Debug current Mojo file",
-            "description": "Launch and debug the Mojo file that is active on the editor when the debug session starts.",
-            "mojoFile": "${file}",
+            "name": "Mojo: Debug binary",
+            "description": "Launch and debug a precompiled binary given its path.",
+            "program": "${fileDirname}/${fileBasenameNoExtension}",
             "args": [],
             "env": [],
-            "cwd": "${workspaceFolder}",
-            "runInTerminal": true, // terminal is better than debug console for stdin input
-        },
+            // "cwd": "${workspaceFolder}",
+            "cwd": "${fileDirname}",
+            "runInTerminal": true, // use terminal instead of debug console for stdin input
+            "preLaunchTask": "build"
+        }
     ]
 }
