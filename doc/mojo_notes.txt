@@ -125,6 +125,11 @@ Value semantics also apply to function arguments in Mojo by default.
 in the following function, the y argument is immutable by default,
 so if the function wants to modify the value in the local scope, it needs to make a local copy.
 
+// so this means:
+// function arguments: passed as immutable references by default (caller’s data protected).
+// assignments (=) : create value copies by default.
+
+
 fn add_two(y: Int):
     # y += 2  # This would cause a compiler error because `y` is immutable
     # We can instead make an explicit copy:
